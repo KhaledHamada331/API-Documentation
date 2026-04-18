@@ -11,8 +11,9 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Registers a new user and returns a success message.",
+        "summary": "Registers a new user (Donor or Hospital) into the system.",
         "requestBody": {
+          "description": "The user registration data including personal info and credentials.",
           "content": {
             "application/json": {
               "schema": {
@@ -33,7 +34,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "User registered successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43,27 +44,7 @@
             }
           },
           "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+            "description": "Validation error or registration failure (e.g., email already exists).",
             "content": {
               "application/json": {
                 "schema": {
@@ -80,8 +61,9 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Authenticates user credentials and returns JWT and Refresh tokens.",
+        "summary": "Authenticates a user and returns a JWT token.",
         "requestBody": {
+          "description": "The user's login credentials (email and password).",
           "content": {
             "application/json": {
               "schema": {
@@ -102,7 +84,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Login successful, returns JWT token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -112,7 +94,7 @@
             }
           },
           "400": {
-            "description": "Bad Request",
+            "description": "Missing email or password.",
             "content": {
               "application/json": {
                 "schema": {
@@ -122,17 +104,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+            "description": "Invalid credentials.",
             "content": {
               "application/json": {
                 "schema": {
@@ -149,10 +121,10 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Invalidates the user session and tokens.",
+        "summary": "Logs out the currently authenticated user.",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Logout successful.",
             "content": {
               "application/json": {
                 "schema": {
@@ -162,17 +134,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+            "description": "Unauthorized if no valid token is provided.",
             "content": {
               "application/json": {
                 "schema": {
@@ -189,19 +151,30 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Initiates the password recovery process.",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "query",
-            "schema": {
-              "type": "string"
+        "summary": "Sends a password reset request to the user's email.",
+        "requestBody": {
+          "description": "The forgot password request containing the user's email.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Password reset email sent successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -211,7 +184,7 @@
             }
           },
           "400": {
-            "description": "Bad Request",
+            "description": "Email address is missing.",
             "content": {
               "application/json": {
                 "schema": {
@@ -221,7 +194,235 @@
             }
           },
           "404": {
-            "description": "Not Found",
+            "description": "User with this email not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/reset-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Resets the user's password using a valid reset token.",
+        "requestBody": {
+          "description": "The reset password data (email, token, and new password).",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid token, expired token, or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donations/get-all": {
+      "get": {
+        "tags": [
+          "Donations"
+        ],
+        "summary": "Retrieves all blood donation records in the system.",
+        "responses": {
+          "200": {
+            "description": "Returns the list of all donation records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonationResponseIEnumerableApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized if no valid token is provided."
+          }
+        }
+      }
+    },
+    "/api/Donations/get-by-id/{id}": {
+      "get": {
+        "tags": [
+          "Donations"
+        ],
+        "summary": "Retrieves a specific donation record by its unique identifier.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique ID of the donation process.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the requested donation record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonationResponseApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donation record with the given ID is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donations/create": {
+      "post": {
+        "tags": [
+          "Donations"
+        ],
+        "summary": "Registers a new donation record in the system.",
+        "description": "Note: The donor identity is automatically resolved from the authenticated user's context.",
+        "requestBody": {
+          "description": "The data required to create a new donation record.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Donation record created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonationResponseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the input data is invalid or the business logic fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donations/update/{id}": {
+      "put": {
+        "tags": [
+          "Donations"
+        ],
+        "summary": "Updates an existing donation record's information.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique ID of the donation record to update.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The updated data for the donation process.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Donation record updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonationResponseApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donation record does not exist.",
             "content": {
               "application/json": {
                 "schema": {
@@ -230,8 +431,277 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "400": {
+            "description": "If validation fails."
+          }
+        }
+      }
+    },
+    "/api/Donations/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Donations"
+        ],
+        "summary": "Permanently deletes a donation record from the system.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique ID of the donation record to delete.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donation record deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donation record with the given ID is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donors/get-all": {
+      "get": {
+        "tags": [
+          "Donors"
+        ],
+        "summary": "Retrieves all donors with optional filtering by blood type and location.",
+        "parameters": [
+          {
+            "name": "bloodType",
+            "in": "query",
+            "description": "Optional: Filter donors by their blood type (e.g., A+, O-, etc.).",
+            "schema": {
+              "$ref": "#/components/schemas/BloodType"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "Optional: Filter donors by their city or area.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of donors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonorResponseIEnumerableApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donors/get-by-id/{id}": {
+      "get": {
+        "tags": [
+          "Donors"
+        ],
+        "summary": "Retrieves details of a specific donor by their ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the donor.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the donor details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonorResponseApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donor record is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donors/create": {
+      "post": {
+        "tags": [
+          "Donors"
+        ],
+        "summary": "Registers a new donor in the system.",
+        "requestBody": {
+          "description": "The donor creation data.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonorRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonorRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Donor profile created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonorResponseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the request data is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donors/update/{id}": {
+      "put": {
+        "tags": [
+          "Donors"
+        ],
+        "summary": "Updates an existing donor's information.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique ID of the donor to update.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The updated donor information.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonorRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonorRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonorResponseApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donor is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Donors/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Donors"
+        ],
+        "summary": "Deletes a donor profile from the system.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the donor to be removed.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deletion successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donor record does not exist.",
             "content": {
               "application/json": {
                 "schema": {
@@ -248,11 +718,12 @@
         "tags": [
           "Donors"
         ],
-        "summary": "Retrieves potential donors matching a specific blood request.",
+        "summary": "Gets a list of potential compatible donors for a specific blood request using the AI ranking system.",
         "parameters": [
           {
             "name": "requestId",
             "in": "path",
+            "description": "The ID of the active blood request.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -262,7 +733,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns compatible matches.",
             "content": {
               "application/json": {
                 "schema": {
@@ -282,17 +753,7 @@
             }
           },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+            "description": "If the blood request is not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -309,8 +770,9 @@
         "tags": [
           "Donors"
         ],
-        "summary": "Records a donor's response (Accept/Decline) to a blood request.",
+        "summary": "Submits a donor's response (Accept/Decline) to a specific donation request.",
         "requestBody": {
+          "description": "The response details (RequestId and Status).",
           "content": {
             "application/json": {
               "schema": {
@@ -331,138 +793,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StringApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Donors/leaderboard": {
-      "get": {
-        "tags": [
-          "Donors"
-        ],
-        "summary": "Returns the donor leaderboard with pagination support.",
-        "parameters": [
-          {
-            "name": "pageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DonorLeaderboardResponsePagedResultApiResponse"
-                }
-              }
-            }
-          },
-          "204": {
-            "description": "No Content",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Hospitals/confirm-donation/{id}": {
-      "put": {
-        "tags": [
-          "Hospitals"
-        ],
-        "summary": "Confirms a blood donation and updates the request status (UC-08).",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
+            "description": "Response recorded successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -482,17 +813,7 @@
             }
           },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+            "description": "If the request or donor is not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -504,13 +825,118 @@
         }
       }
     },
-    "/api/Hospitals/inventory": {
+    "/api/Donors/leaderboard": {
+      "get": {
+        "tags": [
+          "Donors"
+        ],
+        "summary": "Retrieves a paged leaderboard of donors ranked by their contribution count.",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "description": "The page number for results (Default is 1).",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "The number of records per page (Default is 10).",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the leaderboard data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonorLeaderboardResponsePagedResultApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Hospital/confirm-donation/{id}": {
       "put": {
         "tags": [
-          "Hospitals"
+          "Hospital"
         ],
-        "summary": "Updates and retrieves the current hospital blood inventory.",
+        "summary": "Confirms that a blood donation process has been successfully completed.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the donation process to be confirmed.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donation confirmed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the provided ID is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the donation record is not found or cannot be confirmed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Hospital/inventory": {
+      "put": {
+        "tags": [
+          "Hospital"
+        ],
+        "summary": "Updates the current blood stock levels (inventory) for the authenticated hospital.",
         "requestBody": {
+          "description": "A list of blood types and their corresponding quantities to update.",
           "content": {
             "application/json": {
               "schema": {
@@ -540,11 +966,109 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Inventory updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HospitalInventoryDtoIEnumerableApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the request data is empty or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If the hospital record is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized if the user is not a valid hospital representative."
+          }
+        }
+      }
+    },
+    "/api/Notification/get-notifications": {
+      "get": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Retrieves a paginated list of notifications for the authenticated user.",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "description": "The page number for the results (Default is 1).",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "The number of notifications per page (Default is 10).",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of notifications successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationsDtoPagedResultApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If pagination parameters are invalid (less than or equal to zero).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "If the user identity cannot be verified from the token."
+          }
+        }
+      }
+    },
+    "/api/Notification/mark-all-as-read": {
+      "patch": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Marks all unread notifications as \"Read\" for the authenticated user.",
+        "responses": {
+          "200": {
+            "description": "All notifications marked as read successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringApiResponse"
                 }
               }
             }
@@ -560,124 +1084,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Notifications": {
-      "get": {
-        "tags": [
-          "Notifications"
-        ],
-        "summary": "Retrieves all notifications for the authenticated user (Emergency alerts or donor matches).",
-        "parameters": [
-          {
-            "name": "pageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Notifications/mark-all-as-read": {
-      "patch": {
-        "tags": [
-          "Notifications"
-        ],
-        "summary": "Marks all user notifications as read.",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StringApiResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
+            "description": "If the user identity cannot be verified from the token."
           }
         }
       }
@@ -687,8 +1094,9 @@
         "tags": [
           "Requests"
         ],
-        "summary": "Submits a blood request and triggers AI for blood type extraction.",
+        "summary": "Submits a new blood request and initiates the AI analysis process.",
         "requestBody": {
+          "description": "Details of the blood request.",
           "content": {
             "application/json": {
               "schema": {
@@ -709,7 +1117,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request submitted and AI analysis initiated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -728,35 +1136,8 @@
               }
             }
           },
-          "422": {
-            "description": "Unprocessable Content",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
           "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
+            "description": "Unauthorized if the user session is invalid."
           }
         }
       }
@@ -798,26 +1179,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -839,18 +1200,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
@@ -900,16 +1251,6 @@
           },
           "400": {
             "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
             "content": {
               "application/json": {
                 "schema": {
@@ -968,16 +1309,6 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -987,10 +1318,10 @@
         "tags": [
           "Users"
         ],
-        "summary": "Retrieves the profile information of the authenticated user.",
+        "summary": "Retrieves the personal profile details of the authenticated user.",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Profile retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -999,8 +1330,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
@@ -1010,7 +1341,7 @@
             }
           },
           "404": {
-            "description": "Not Found",
+            "description": "User profile not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1019,15 +1350,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
+          "401": {
+            "description": "Unauthorized if the user is not logged in."
           }
         }
       }
@@ -1077,26 +1401,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -1127,8 +1431,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
@@ -1137,8 +1441,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "404": {
+            "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1177,18 +1481,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ObjectApiResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
+          "404": {
+            "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1287,6 +1581,11 @@
         "additionalProperties": false
       },
       "BloodRequestDto": {
+        "required": [
+          "bloodType",
+          "medicalReportText",
+          "urgencyLevel"
+        ],
         "type": "object",
         "properties": {
           "requestId": {
@@ -1294,12 +1593,16 @@
             "format": "int32"
           },
           "medicalReportText": {
+            "maxLength": 3000,
+            "minLength": 10,
             "type": "string"
           },
           "bloodType": {
             "$ref": "#/components/schemas/BloodType"
           },
           "quantity": {
+            "maximum": 100,
+            "minimum": 1,
             "type": "integer",
             "format": "int32"
           },
@@ -1310,6 +1613,8 @@
             "$ref": "#/components/schemas/RequestStatus"
           },
           "hospitalId": {
+            "maximum": 2147483647,
+            "minimum": 1,
             "type": "integer",
             "format": "int32"
           }
@@ -1328,6 +1633,177 @@
           "ABNegative"
         ],
         "type": "string"
+      },
+      "CreateDonationRequest": {
+        "required": [
+          "confirmationStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "bloodRequestId": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "hospitalId": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "donationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "confirmationStatus": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateDonorRequest": {
+        "required": [
+          "bloodType",
+          "email",
+          "firstName",
+          "lastName",
+          "location",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "minLength": 6,
+            "type": "string"
+          },
+          "bloodType": {
+            "$ref": "#/components/schemas/BloodType"
+          },
+          "location": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "phoneNumber": {
+            "maxLength": 30,
+            "type": "string",
+            "format": "tel"
+          },
+          "lastDonationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "latitude": {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DonationResponse": {
+        "type": "object",
+        "properties": {
+          "donationProcessId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "donorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bloodRequestId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hospitalId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "donationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmationStatus": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DonationResponseApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DonationResponse"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DonationResponseIEnumerableApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DonationResponse"
+            },
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "DonorLeaderboardResponse": {
         "type": "object",
@@ -1447,10 +1923,103 @@
         },
         "additionalProperties": false
       },
+      "DonorResponse": {
+        "type": "object",
+        "properties": {
+          "donorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "bloodType": {
+            "$ref": "#/components/schemas/BloodType"
+          },
+          "location": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "lastDonationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DonorResponseApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DonorResponse"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DonorResponseIEnumerableApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DonorResponse"
+            },
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DonorResponseRequest": {
+        "required": [
+          "bloodType"
+        ],
         "type": "object",
         "properties": {
           "requestId": {
+            "maximum": 2147483647,
+            "minimum": 1,
             "type": "integer",
             "format": "int32"
           },
@@ -1463,13 +2032,32 @@
         },
         "additionalProperties": false
       },
+      "ForgotPasswordRequest": {
+        "required": [
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "additionalProperties": false
+      },
       "HospitalInventoryDto": {
+        "required": [
+          "bloodType"
+        ],
         "type": "object",
         "properties": {
           "bloodType": {
             "$ref": "#/components/schemas/BloodType"
           },
           "unitsAvailable": {
+            "maximum": 5000,
+            "minimum": 0,
             "type": "integer",
             "format": "int32"
           }
@@ -1506,10 +2094,14 @@
         "type": "object",
         "properties": {
           "latitude": {
+            "maximum": 90,
+            "minimum": -90,
             "type": "number",
             "format": "double"
           },
           "longitude": {
+            "maximum": 180,
+            "minimum": -180,
             "type": "number",
             "format": "double"
           }
@@ -1517,13 +2109,88 @@
         "additionalProperties": false
       },
       "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "format": "email"
           },
           "password": {
+            "maxLength": 100,
+            "minLength": 8,
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationsDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationsDtoPagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationsDto"
+            }
+          },
+          "totalRecords": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationsDtoPagedResultApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NotificationsDtoPagedResult"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1586,6 +2253,36 @@
         ],
         "type": "string"
       },
+      "ResetPasswordRequest": {
+        "required": [
+          "confirmPassword",
+          "email",
+          "newPassword",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "token": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "newPassword": {
+            "maxLength": 100,
+            "minLength": 8,
+            "type": "string"
+          },
+          "confirmPassword": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "Role": {
         "enum": [
           "Hospital",
@@ -1617,6 +2314,76 @@
         },
         "additionalProperties": false
       },
+      "UpdateDonationRequest": {
+        "required": [
+          "confirmationStatus",
+          "donationDate"
+        ],
+        "type": "object",
+        "properties": {
+          "donationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmationStatus": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateDonorRequest": {
+        "required": [
+          "bloodType",
+          "firstName",
+          "lastName",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "bloodType": {
+            "$ref": "#/components/schemas/BloodType"
+          },
+          "location": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "phoneNumber": {
+            "maxLength": 30,
+            "type": "string",
+            "format": "tel"
+          },
+          "lastDonationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latitude": {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "UrgencyLevel": {
         "enum": [
           "Normal",
@@ -1629,11 +2396,36 @@
       "UserProfileResponse": {
         "type": "object",
         "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
           "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phoneNumber": {
             "type": "string"
           },
           "bloodType": {
             "$ref": "#/components/schemas/BloodType"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "governorate": {
+            "type": "string"
+          },
+          "donorRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "lastDonationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           },
           "totalPoints": {
             "type": "integer",
@@ -1668,30 +2460,56 @@
         "additionalProperties": false
       },
       "UserRegisterRequest": {
+        "required": [
+          "bloodType",
+          "email",
+          "firstName",
+          "governorate",
+          "lastName",
+          "password",
+          "phone",
+          "role"
+        ],
         "type": "object",
         "properties": {
           "firstName": {
+            "maxLength": 100,
+            "minLength": 2,
             "type": "string"
           },
           "lastName": {
+            "maxLength": 100,
+            "minLength": 2,
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "format": "email"
           },
           "password": {
+            "maxLength": 100,
+            "minLength": 8,
             "type": "string"
           },
           "latitude": {
+            "maximum": 90,
+            "minimum": -90,
             "type": "number",
             "format": "double"
           },
           "longitude": {
+            "maximum": 180,
+            "minimum": -180,
             "type": "number",
             "format": "double"
           },
           "phone": {
-            "type": "string"
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string",
+            "format": "tel"
           },
           "bloodType": {
             "$ref": "#/components/schemas/BloodType"
@@ -1700,9 +2518,13 @@
             "$ref": "#/components/schemas/Role"
           },
           "governorate": {
+            "maxLength": 200,
+            "minLength": 2,
             "type": "string"
           },
           "donorRate": {
+            "maximum": 5,
+            "minimum": 0,
             "type": "number",
             "format": "double"
           }
@@ -1713,7 +2535,7 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Enter your JWT token: Bearer {your_token}",
+        "description": "Paste your JWT token here. Swagger will send: Authorization: Bearer {token}",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
